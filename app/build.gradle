@@ -4,7 +4,7 @@ plugins {
 
 android {
     compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.ariefzuhri.academy"
@@ -57,4 +57,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$junitExtversion"
 
     androidTestImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation "androidx.arch.core:core-testing:$androidCoreTestVersion"
+    implementation "androidx.test.espresso:espresso-idling-resource:$idleResourceVersion"
 }

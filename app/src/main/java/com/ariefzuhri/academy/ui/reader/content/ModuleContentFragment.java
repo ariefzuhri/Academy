@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import com.ariefzuhri.academy.data.ModuleEntity;
 import com.ariefzuhri.academy.databinding.FragmentModuleContentBinding;
 import com.ariefzuhri.academy.ui.reader.CourseReaderViewModel;
+import com.ariefzuhri.academy.viewmodel.ViewModelFactory;
 
 public class ModuleContentFragment extends Fragment {
 
@@ -36,9 +37,16 @@ public class ModuleContentFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (getActivity() != null){
-            CourseReaderViewModel viewModel = new ViewModelProvider(requireActivity(), new ViewModelProvider.NewInstanceFactory()).get(CourseReaderViewModel.class);
-            ModuleEntity module = viewModel.getSelectedModule();
-            populateWebView(module);
+            ViewModelFactory factory = ViewModelFactory.getInstance(getActivity());
+            CourseReaderViewModel viewModel = new ViewModelProvider(requireActivity(), factory).get(CourseReaderViewModel.class);
+
+            binding.progressBar.setVisibility(View.VISIBLE);
+            viewModel.getSelectedModule().observe(getViewLifecycleOwner(), module -> {
+                binding.progressBar.setVisibility(View.GONE);
+                if (module != null) {
+                    populateWebView(module);
+                }
+            });
         }
     }
 

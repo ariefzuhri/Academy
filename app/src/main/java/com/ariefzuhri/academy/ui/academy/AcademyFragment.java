@@ -12,9 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.ariefzuhri.academy.data.CourseEntity;
 import com.ariefzuhri.academy.databinding.FragmentAcademyBinding;
-import com.ariefzuhri.academy.utils.DataDummy;
+import com.ariefzuhri.academy.viewmodel.ViewModelFactory;
 
 import java.util.List;
 
@@ -34,11 +33,18 @@ public class AcademyFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (getActivity() != null){
-            AcademyViewModel viewModel = new ViewModelProvider(this, new ViewModelProvider.NewInstanceFactory()).get(AcademyViewModel.class);
-            List<CourseEntity> courses = viewModel.getCourses();
+            ViewModelFactory factory = ViewModelFactory.getInstance(getActivity());
+            AcademyViewModel viewModel = new ViewModelProvider(this, factory).get(AcademyViewModel.class);
 
             AcademyAdapter academyAdapter = new AcademyAdapter();
-            academyAdapter.setCourses(courses);
+
+            binding.progressBar.setVisibility(View.VISIBLE);
+            viewModel.getCourses().observe(getViewLifecycleOwner(), courses -> {
+                        binding.progressBar.setVisibility(View.GONE);
+                        academyAdapter.setCourses(courses);
+                        academyAdapter.notifyDataSetChanged();
+                    }
+            );
 
             binding.rvAcademy.setLayoutManager(new LinearLayoutManager(getContext()));
             binding.rvAcademy.setHasFixedSize(true);

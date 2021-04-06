@@ -16,7 +16,7 @@ import android.view.ViewGroup;
 import com.ariefzuhri.academy.R;
 import com.ariefzuhri.academy.data.CourseEntity;
 import com.ariefzuhri.academy.databinding.FragmentBookmarkBinding;
-import com.ariefzuhri.academy.utils.DataDummy;
+import com.ariefzuhri.academy.viewmodel.ViewModelFactory;
 
 import java.util.List;
 
@@ -37,11 +37,17 @@ public class BookmarkFragment extends Fragment implements BookmarkFragmentCallba
         super.onViewCreated(view, savedInstanceState);
 
         if (getActivity() != null) {
-            BookmarkViewModel viewModel = new ViewModelProvider(this, new ViewModelProvider.NewInstanceFactory()).get(BookmarkViewModel.class);
-            List<CourseEntity> courses = viewModel.getBookmarks();
+            ViewModelFactory factory = ViewModelFactory.getInstance(getActivity());
+            BookmarkViewModel viewModel = new ViewModelProvider(this, factory).get(BookmarkViewModel.class);
 
             BookmarkAdapter adapter = new BookmarkAdapter(this);
-            adapter.setCourses(courses);
+
+            binding.progressBar.setVisibility(View.VISIBLE);
+            viewModel.getBookmarks().observe(getViewLifecycleOwner(), courses -> {
+                binding.progressBar.setVisibility(View.GONE);
+                adapter.setCourses(courses);
+                adapter.notifyDataSetChanged();
+            });
 
             binding.rvBookmark.setLayoutManager(new LinearLayoutManager(getContext()));
             binding.rvBookmark.setHasFixedSize(true);

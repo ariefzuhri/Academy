@@ -19,7 +19,7 @@ import com.ariefzuhri.academy.databinding.FragmentModuleListBinding;
 import com.ariefzuhri.academy.ui.reader.CourseReaderActivity;
 import com.ariefzuhri.academy.ui.reader.CourseReaderCallback;
 import com.ariefzuhri.academy.ui.reader.CourseReaderViewModel;
-import com.ariefzuhri.academy.utils.DataDummy;
+import com.ariefzuhri.academy.viewmodel.ViewModelFactory;
 
 import java.util.List;
 
@@ -48,9 +48,15 @@ public class ModuleListFragment extends Fragment implements MyAdapterClickListen
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (getActivity() != null) {
-            viewModel = new ViewModelProvider(requireActivity(), new ViewModelProvider.NewInstanceFactory()).get(CourseReaderViewModel.class);
+            ViewModelFactory factory = ViewModelFactory.getInstance(getActivity());
+            viewModel = new ViewModelProvider(requireActivity(), factory).get(CourseReaderViewModel.class);
             adapter = new ModuleListAdapter(this);
-            populateRecyclerView(viewModel.getModules());
+
+            binding.progressBar.setVisibility(View.VISIBLE);
+            viewModel.getModules().observe(getViewLifecycleOwner(), modules -> {
+                binding.progressBar.setVisibility(View.GONE);
+                populateRecyclerView(modules);
+            });
         }
     }
 
