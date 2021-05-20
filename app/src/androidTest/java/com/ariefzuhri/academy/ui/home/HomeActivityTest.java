@@ -2,10 +2,11 @@ package com.ariefzuhri.academy.ui.home;
 
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.espresso.IdlingRegistry;
+import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.RecyclerViewActions;
 
 import com.ariefzuhri.academy.R;
-import com.ariefzuhri.academy.data.CourseEntity;
+import com.ariefzuhri.academy.data.source.local.entity.CourseEntity;
 import com.ariefzuhri.academy.utils.DataDummy;
 import com.ariefzuhri.academy.utils.EspressoIdlingResource;
 
@@ -19,6 +20,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
@@ -75,9 +77,15 @@ public class HomeActivityTest {
 
     @Test
     public void loadBookmarks() {
+        onView(withId(R.id.rv_academy)).perform(RecyclerViewActions.actionOnItemAtPosition(0, click()));
+        onView(withId(R.id.action_bookmark)).perform(click());
+        onView(isRoot()).perform(ViewActions.pressBack());
         onView(withText("Bookmark")).perform(click());
         onView(withId(R.id.rv_bookmark)).check(matches(isDisplayed()));
-        onView(withId(R.id.rv_bookmark)).perform(RecyclerViewActions.scrollToPosition(
-                dummyCourse.size()));
+        onView(withId(R.id.rv_bookmark)).perform(RecyclerViewActions.actionOnItemAtPosition(0, click()));
+        onView(withId(R.id.text_title)).check(matches(isDisplayed()));
+        onView(withId(R.id.text_date)).check(matches(isDisplayed()));
+        onView(withId(R.id.action_bookmark)).perform(click());
+        onView(isRoot()).perform(ViewActions.pressBack());
     }
 }

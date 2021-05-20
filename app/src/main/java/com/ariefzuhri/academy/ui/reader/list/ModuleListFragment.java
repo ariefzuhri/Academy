@@ -13,8 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
-import com.ariefzuhri.academy.data.ModuleEntity;
+import com.ariefzuhri.academy.data.source.local.entity.ModuleEntity;
 import com.ariefzuhri.academy.databinding.FragmentModuleListBinding;
 import com.ariefzuhri.academy.ui.reader.CourseReaderActivity;
 import com.ariefzuhri.academy.ui.reader.CourseReaderCallback;
@@ -52,10 +53,24 @@ public class ModuleListFragment extends Fragment implements MyAdapterClickListen
             viewModel = new ViewModelProvider(requireActivity(), factory).get(CourseReaderViewModel.class);
             adapter = new ModuleListAdapter(this);
 
-            binding.progressBar.setVisibility(View.VISIBLE);
-            viewModel.getModules().observe(getViewLifecycleOwner(), modules -> {
-                binding.progressBar.setVisibility(View.GONE);
-                populateRecyclerView(modules);
+            viewModel.modules.observe(getViewLifecycleOwner(), moduleEntities -> {
+                if (moduleEntities != null) {
+                    switch (moduleEntities.status) {
+                        case LOADING:
+                            binding.progressBar.setVisibility(View.VISIBLE);
+                            break;
+
+                        case SUCCESS:
+                            binding.progressBar.setVisibility(View.GONE);
+                            populateRecyclerView(moduleEntities.data);
+                            break;
+
+                        case ERROR:
+                            binding.progressBar.setVisibility(View.GONE);
+                            Toast.makeText(getContext(), "Terjadi kesalahan", Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
             });
         }
     }

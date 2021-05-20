@@ -11,11 +11,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.ariefzuhri.academy.databinding.FragmentAcademyBinding;
 import com.ariefzuhri.academy.viewmodel.ViewModelFactory;
-
-import java.util.List;
 
 public class AcademyFragment extends Fragment {
 
@@ -37,14 +36,23 @@ public class AcademyFragment extends Fragment {
             AcademyViewModel viewModel = new ViewModelProvider(this, factory).get(AcademyViewModel.class);
 
             AcademyAdapter academyAdapter = new AcademyAdapter();
-
-            binding.progressBar.setVisibility(View.VISIBLE);
             viewModel.getCourses().observe(getViewLifecycleOwner(), courses -> {
-                        binding.progressBar.setVisibility(View.GONE);
-                        academyAdapter.setCourses(courses);
-                        academyAdapter.notifyDataSetChanged();
+                if (courses != null) {
+                    switch (courses.status) {
+                        case LOADING:
+                            binding.progressBar.setVisibility(View.VISIBLE);
+                            break;
+                        case SUCCESS:
+                            binding.progressBar.setVisibility(View.GONE);
+                            academyAdapter.submitList(courses.data);
+                            break;
+                        case ERROR:
+                            binding.progressBar.setVisibility(View.GONE);
+                            Toast.makeText(getContext(), "Terjadi kesalahan", Toast.LENGTH_SHORT).show();
+                            break;
                     }
-            );
+                }
+            });
 
             binding.rvAcademy.setLayoutManager(new LinearLayoutManager(getContext()));
             binding.rvAcademy.setHasFixedSize(true);

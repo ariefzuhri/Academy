@@ -7,22 +7,26 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ShareCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.ariefzuhri.academy.R;
-import com.ariefzuhri.academy.data.CourseEntity;
+import com.ariefzuhri.academy.data.source.local.entity.CourseEntity;
 import com.ariefzuhri.academy.databinding.FragmentBookmarkBinding;
 import com.ariefzuhri.academy.viewmodel.ViewModelFactory;
-
-import java.util.List;
+import com.google.android.material.snackbar.Snackbar;
 
 public class BookmarkFragment extends Fragment implements BookmarkFragmentCallback {
 
     private FragmentBookmarkBinding binding;
+
+    private BookmarkViewModel viewModel;
+    private BookmarkAdapter adapter;
 
     public BookmarkFragment() {}
 
@@ -36,17 +40,18 @@ public class BookmarkFragment extends Fragment implements BookmarkFragmentCallba
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        itemTouchHelper.attachToRecyclerView(binding.rvBookmark);
+
         if (getActivity() != null) {
             ViewModelFactory factory = ViewModelFactory.getInstance(getActivity());
-            BookmarkViewModel viewModel = new ViewModelProvider(this, factory).get(BookmarkViewModel.class);
+            viewModel = new ViewModelProvider(this, factory).get(BookmarkViewModel.class);
 
-            BookmarkAdapter adapter = new BookmarkAdapter(this);
+            adapter = new BookmarkAdapter(this);
 
             binding.progressBar.setVisibility(View.VISIBLE);
             viewModel.getBookmarks().observe(getViewLifecycleOwner(), courses -> {
                 binding.progressBar.setVisibility(View.GONE);
-                adapter.setCourses(courses);
-                adapter.notifyDataSetChanged();
+                adapter.submitList(courses);
             });
 
             binding.rvBookmark.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -67,4 +72,41 @@ public class BookmarkFragment extends Fragment implements BookmarkFragmentCallba
                     .startChooser();
         }
     }
+
+    private ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
+
+        @Override
+        public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+            // Aksi di bawah digunakan untuk melakukan swap ke kanan dan ke kiri
+            return makeMovementFlags(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+        }
+
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return true;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            if (getView() != null) {
+                // Sebelum melakukan penghapusan, course harus mendapatkan posisi dari item yang di swipe
+                int swipedPosition = viewHolder.getAdapterPosition();
+
+                // Kemudian memanggil CourseEntity sesuai posisi ketika diswipe
+                CourseEntity courseEntity = adapter.getSwipedData(swipedPosition);
+
+                // Melakukan setBookmark untuk menghapus bookmark dari list course
+                viewModel.setBookmark(courseEntity);
+
+                // Memanggil Snackbar untuk melakukan pengecekan, apakah benar melakukan penghapusan bookmark
+                Snackbar snackbar = Snackbar.make(getView(), R.string.message_undo, Snackbar.LENGTH_LONG);
+
+                // Mengembalikan item yang terhapus
+                snackbar.setAction(R.string.message_ok, v -> viewModel.setBookmark(courseEntity));
+
+                // Menampilkan snackbar
+                snackbar.show();
+            }
+        }
+    });
 }

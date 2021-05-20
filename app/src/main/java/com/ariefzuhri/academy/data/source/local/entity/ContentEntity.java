@@ -1,6 +1,11 @@
-package com.ariefzuhri.academy.data;
+package com.ariefzuhri.academy.data.source.local.entity;
+
+import androidx.room.ColumnInfo;
+
+// Tidak ada tabel karena informasi di sini sudah digabung bersama tabel moduleEntities
 
 public class ContentEntity {
+    @ColumnInfo(name = "content")
     private String mContent;
 
     public ContentEntity(String content) {

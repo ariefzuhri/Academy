@@ -1,7 +1,9 @@
 package com.ariefzuhri.academy.utils;
 
-import com.ariefzuhri.academy.data.CourseEntity;
-import com.ariefzuhri.academy.data.ModuleEntity;
+import com.ariefzuhri.academy.data.source.local.entity.ContentEntity;
+import com.ariefzuhri.academy.data.source.local.entity.CourseEntity;
+import com.ariefzuhri.academy.data.source.local.entity.CourseWithModule;
+import com.ariefzuhri.academy.data.source.local.entity.ModuleEntity;
 import com.ariefzuhri.academy.data.source.remote.response.ContentResponse;
 import com.ariefzuhri.academy.data.source.remote.response.CourseResponse;
 import com.ariefzuhri.academy.data.source.remote.response.ModuleResponse;
@@ -151,6 +153,24 @@ public class DataDummy {
 
     public static ContentResponse generateRemoteDummyContent(String moduleId) {
         return new ContentResponse(moduleId, "This is a dummy content");
+    }
+
+    public static CourseWithModule generateDummyCourseWithModules(CourseEntity course, boolean bookmarked) {
+        CourseWithModule courseWithModule = new CourseWithModule();
+        courseWithModule.mCourse = course;
+        courseWithModule.mCourse.setBookmarked(bookmarked);
+        courseWithModule.mModules = generateDummyModules(course.getCourseId());
+        return courseWithModule;
+    }
+
+    private static ContentEntity generateDummyContent(String moduleId) {
+        return new ContentEntity("This is a dummy content");
+    }
+
+    public static ModuleEntity generateDummyModuleWithContent(String courseId) {
+        ModuleEntity moduleEntity = generateDummyModules(courseId).get(0);
+        moduleEntity.contentEntity = generateDummyContent(moduleEntity.getModuleId());
+        return moduleEntity;
     }
 }
 

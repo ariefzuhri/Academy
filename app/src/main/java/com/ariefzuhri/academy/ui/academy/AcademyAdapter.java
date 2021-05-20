@@ -1,32 +1,43 @@
 package com.ariefzuhri.academy.ui.academy;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.paging.PagedListAdapter;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ariefzuhri.academy.R;
-import com.ariefzuhri.academy.data.CourseEntity;
+import com.ariefzuhri.academy.data.source.local.entity.CourseEntity;
 import com.ariefzuhri.academy.databinding.ItemsAcademyBinding;
 import com.ariefzuhri.academy.ui.detail.DetailCourseActivity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.ariefzuhri.academy.ui.detail.DetailCourseActivity.EXTRA_COURSE;
 
-public class AcademyAdapter extends RecyclerView.Adapter<AcademyAdapter.CourseViewHolder> {
-    private final List<CourseEntity> listCourses = new ArrayList<>();
+public class AcademyAdapter extends PagedListAdapter<CourseEntity, AcademyAdapter.CourseViewHolder> {
 
-    void setCourses(List<CourseEntity> listCourses){
-        if (listCourses == null) return;
-        this.listCourses.clear();
-        this.listCourses.addAll(listCourses);
+    protected AcademyAdapter() {
+        super(DIFF_CALLBACK);
     }
+
+    private static DiffUtil.ItemCallback<CourseEntity> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<CourseEntity>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull CourseEntity oldItem, @NonNull CourseEntity newItem) {
+                    return oldItem.getCourseId().equals(newItem.getCourseId());
+                }
+
+                @SuppressLint("DiffUtilEquals")
+                @Override
+                public boolean areContentsTheSame(@NonNull CourseEntity oldItem, @NonNull CourseEntity newItem) {
+                    return oldItem.equals(newItem);
+                }
+            };
 
     @NonNull
     @Override
@@ -37,13 +48,10 @@ public class AcademyAdapter extends RecyclerView.Adapter<AcademyAdapter.CourseVi
 
     @Override
     public void onBindViewHolder(@NonNull AcademyAdapter.CourseViewHolder holder, int position) {
-        CourseEntity course = listCourses.get(position);
-        holder.bind(course);
-    }
-
-    @Override
-    public int getItemCount() {
-        return listCourses.size();
+        CourseEntity course = getItem(position);
+        if (course != null) {
+            holder.bind(course);
+        }
     }
 
     static class CourseViewHolder extends RecyclerView.ViewHolder {

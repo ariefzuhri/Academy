@@ -1,35 +1,78 @@
 package com.ariefzuhri.academy.ui.reader;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
-import com.ariefzuhri.academy.data.ModuleEntity;
-import com.ariefzuhri.academy.data.source.AcademyRepository;
+import com.ariefzuhri.academy.data.source.local.entity.ModuleEntity;
+import com.ariefzuhri.academy.data.AcademyRepository;
+import com.ariefzuhri.academy.vo.Resource;
 
 import java.util.List;
 
 public class CourseReaderViewModel extends ViewModel {
-    private String courseId;
-    private String moduleId;
-    private final AcademyRepository academyRepository;
+
+    private MutableLiveData<String> courseId = new MutableLiveData<>();
+    private MutableLiveData<String> moduleId = new MutableLiveData<>();
+    private AcademyRepository academyRepository;
 
     public CourseReaderViewModel(AcademyRepository mAcademyRepository) {
         this.academyRepository = mAcademyRepository;
     }
 
-    public void setSelectedCourse(String courseId) {
-        this.courseId = courseId;
+    public LiveData<Resource<List<ModuleEntity>>> modules = Transformations.switchMap(courseId,
+            mCourseId -> academyRepository.getAllModulesByCourse(mCourseId));
+
+    public void setCourseId(String courseId) {
+        this.courseId.setValue(courseId);
     }
+
+    public LiveData<Resource<ModuleEntity>> selectedModule = Transformations.switchMap(moduleId,
+            selectedPosition -> academyRepository.getContent(selectedPosition)
+    );
 
     public void setSelectedModule(String moduleId) {
-        this.moduleId = moduleId;
+        this.moduleId.setValue(moduleId);
     }
 
-    public LiveData<List<ModuleEntity>> getModules() {
-        return academyRepository.getAllModulesByCourse(courseId);
+    public void readContent(ModuleEntity module) {
+        academyRepository.setReadModule(module);
     }
 
-    public LiveData<ModuleEntity> getSelectedModule() {
-        return academyRepository.getContent(courseId, moduleId);
+    public int getModuleSize() {
+        if (modules.getValue() != null) {
+            List<ModuleEntity> moduleEntities = modules.getValue().data;
+            if (moduleEntities != null) {
+                return moduleEntities.size();
+            }
+        }
+        return 0;
+    }
+
+    public void setNextPage() {
+        if (selectedModule.getValue() != null && modules.getValue() != null) {
+            ModuleEntity moduleEntity = selectedModule.getValue().data;
+            List<ModuleEntity> moduleEntities = modules.getValue().data;
+            if (moduleEntity != null && moduleEntities != null) {
+                int position = moduleEntity.getPosition();
+                if (position < moduleEntities.size() && position >= 0) {
+                    setSelectedModule(moduleEntities.get(position + 1).getModuleId());
+                }
+            }
+        }
+    }
+
+    public void setPrevPage() {
+        if (selectedModule.getValue() != null && modules.getValue() != null) {
+            ModuleEntity moduleEntity = selectedModule.getValue().data;
+            List<ModuleEntity> moduleEntities = modules.getValue().data;
+            if (moduleEntity != null && moduleEntities != null) {
+                int position = moduleEntity.getPosition();
+                if (position < moduleEntities.size() && position >= 0) {
+                    setSelectedModule(moduleEntities.get(position - 1).getModuleId());
+                }
+            }
+        }
     }
 }

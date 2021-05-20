@@ -5,10 +5,10 @@ import androidx.lifecycle.LiveData;
 import androidx.paging.LivePagedListBuilder;
 import androidx.paging.PagedList;
 
-import com.ariefzuhri.academy.data.source.local.LocalDataSource;
 import com.ariefzuhri.academy.data.source.local.entity.CourseEntity;
 import com.ariefzuhri.academy.data.source.local.entity.CourseWithModule;
 import com.ariefzuhri.academy.data.source.local.entity.ModuleEntity;
+import com.ariefzuhri.academy.data.source.local.LocalDataSource;
 import com.ariefzuhri.academy.data.source.remote.ApiResponse;
 import com.ariefzuhri.academy.data.source.remote.RemoteDataSource;
 import com.ariefzuhri.academy.data.source.remote.response.ContentResponse;
@@ -21,16 +21,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Kelas untuk menghubungkan RemoteDataSource
-public class FakeAcademyRepository implements AcademyDataSource {
+public class AcademyRepository implements AcademyDataSource{
+
+    private volatile static AcademyRepository INSTANCE = null;
 
     private final RemoteDataSource remoteDataSource;
     private final LocalDataSource localDataSource;
     private final AppExecutors appExecutors;
 
-    public FakeAcademyRepository(@NonNull RemoteDataSource remoteDataSource, @NonNull LocalDataSource localDataSource, AppExecutors appExecutors) {
+    private AcademyRepository(@NonNull RemoteDataSource remoteDataSource, @NonNull LocalDataSource localDataSource, AppExecutors appExecutors) {
         this.remoteDataSource = remoteDataSource;
         this.localDataSource = localDataSource;
         this.appExecutors = appExecutors;
+    }
+
+    public static AcademyRepository getInstance(RemoteDataSource remoteData, LocalDataSource localDataSource, AppExecutors appExecutors) {
+        if (INSTANCE == null) {
+            synchronized (AcademyRepository.class) {
+                INSTANCE = new AcademyRepository(remoteData, localDataSource, appExecutors);
+            }
+        }
+        return INSTANCE;
     }
 
     @Override
@@ -45,27 +56,31 @@ public class FakeAcademyRepository implements AcademyDataSource {
                         .build();
                 return new LivePagedListBuilder<>(localDataSource.getAllCourses(), config).build();
             }
+
             @Override
             public Boolean shouldFetch(PagedList<CourseEntity> data) {
                 return (data == null) || (data.size() == 0);
             }
+
             @Override
             public LiveData<ApiResponse<List<CourseResponse>>> createCall() {
                 return remoteDataSource.getAllCourses();
             }
+
             @Override
             public void saveCallResult(List<CourseResponse> courseResponses) {
                 ArrayList<CourseEntity> courseList = new ArrayList<>();
-                for (int i = 0; i < courseResponses.size(); i++) {
-                    CourseResponse response = courseResponses.get(i);
+                for (CourseResponse response : courseResponses) {
                     CourseEntity course = new CourseEntity(response.getId(),
                             response.getTitle(),
                             response.getDescription(),
                             response.getDate(),
                             false,
                             response.getImagePath());
+
                     courseList.add(course);
                 }
+
                 localDataSource.insertCourses(courseList);
             }
         }.asLiveData();

@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.ariefzuhri.academy.data.ModuleEntity;
+import com.ariefzuhri.academy.data.source.local.entity.ModuleEntity;
 import com.ariefzuhri.academy.databinding.ItemsModuleListBinding;
 
 import java.util.ArrayList;

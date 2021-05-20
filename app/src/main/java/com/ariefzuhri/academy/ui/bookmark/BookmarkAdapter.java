@@ -1,35 +1,43 @@
 package com.ariefzuhri.academy.ui.bookmark;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.paging.PagedListAdapter;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.ariefzuhri.academy.R;
-import com.ariefzuhri.academy.data.CourseEntity;
+import com.ariefzuhri.academy.data.source.local.entity.CourseEntity;
 import com.ariefzuhri.academy.databinding.ItemsBookmarkBinding;
 import com.ariefzuhri.academy.ui.detail.DetailCourseActivity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.CourseViewHolder> {
+public class BookmarkAdapter extends PagedListAdapter<CourseEntity, BookmarkAdapter.CourseViewHolder> {
     private final BookmarkFragmentCallback callback;
-    private final ArrayList<CourseEntity> listCourses = new ArrayList<>();
 
     BookmarkAdapter(BookmarkFragmentCallback callback) {
+        super(DIFF_CALLBACK);
         this.callback = callback;
     }
 
-    void setCourses(List<CourseEntity> courses) {
-        if (courses == null) return;
-        this.listCourses.clear();
-        this.listCourses.addAll(courses);
-    }
+    private static DiffUtil.ItemCallback<CourseEntity> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<CourseEntity>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull CourseEntity oldItem, @NonNull CourseEntity newItem) {
+                    return oldItem.getCourseId().equals(newItem.getCourseId());
+                }
+
+                @SuppressLint("DiffUtilEquals")
+                @Override
+                public boolean areContentsTheSame(@NonNull CourseEntity oldItem, @NonNull CourseEntity newItem) {
+                    return oldItem.equals(newItem);
+                }
+            };
 
     @NonNull
     @Override
@@ -40,13 +48,14 @@ public class BookmarkAdapter extends RecyclerView.Adapter<BookmarkAdapter.Course
 
     @Override
     public void onBindViewHolder(@NonNull final CourseViewHolder holder, int position) {
-        CourseEntity course = listCourses.get(position);
-        holder.bind(course);
+        CourseEntity course = getItem(position);
+        if (course != null) {
+            holder.bind(course);
+        }
     }
 
-    @Override
-    public int getItemCount() {
-        return listCourses.size();
+    public CourseEntity getSwipedData(int swipedPosition) {
+        return getItem(swipedPosition);
     }
 
     class CourseViewHolder extends RecyclerView.ViewHolder {
